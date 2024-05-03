@@ -1,32 +1,24 @@
-# Prerequisites
-*.d
+# : comments
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# no .a files
+# *.a
 
-# Precompiled Headers
-*.gch
-*.pch
+# but do track lib.a, even though you're ignoring .a files above
+# !lib.a
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# only ignore the TODO file in the current directory, not subdir/TODO
+# /TODO
 
-# Fortran module files
-*.mod
-*.smod
+# ignore all files in the build/ directory
+# build/
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+# log/
+# install/
+# .vscode/
+# src/clobot_platform_libs/
 
-# Executables
-*.exe
-*.out
-*.app
+# ignore doc/notes.txt, but not doc/server/arch.txt
+# doc/*.txt
+
+# ignore all .pdf files in the doc/ directory
+# doc/**/*.pdf
