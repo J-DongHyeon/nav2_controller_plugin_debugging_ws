@@ -83,16 +83,16 @@ public:
    * @param y y-coordinate within the costmap
    * @return the score associated with that cell.
    */
-  /*--
-  cell_values_[] 는 local_cost_map의 cell 개수만큼의
-  size를 가지는 1차원 벡터이다.
-  cell_values_[]에는 사전에 지정된 최적 지향 cell 인덱스의 값이 0으로 되어 있으며,
-  해당 cell 로부터 거리가 멀어질수록 값이 커지도록 셋팅되어 있다.
-  이때의 거리는 맨하탄 거리 또는 유클리드 거리고 계산된다.
 
-  아규먼트로 특정 pose의 cell 좌표 값을 받고,
-  특정 cell ~ 사전에 지정된 최적 지향 cell 까지의 거리를 반환한다.
-  */
+/*--
+cell_values_[] 는 local_cost_map 의 cell 개수만큼의 size를 가지는 1차원 벡터이다.
+cell_values_[] 에는 사전에 지정된 최적 지향 cell 인덱스의 값이 0으로 되어 있으며,
+해당 cell 로부터 거리가 멀어질수록 값이 커지도록 셋팅되어 있다.
+이때의 거리는 맨하탄 거리 또는 유클리드 거리로 계산된다.
+
+아규먼트로 특정 pose 의 cell 좌표 값을 받고,
+특정 cell ~ 사전에 지정된 최적 지향 cell 까지의 거리를 반환한다.
+*/
   inline double getScore(unsigned int x, unsigned int y)
   {
     return cell_values_[costmap_->getIndex(x, y)];

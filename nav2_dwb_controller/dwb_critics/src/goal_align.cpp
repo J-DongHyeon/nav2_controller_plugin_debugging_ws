@@ -76,8 +76,20 @@ bool GoalAlignCritic::prepare(
   return GoalDistCritic::prepare(pose, vel, goal, target_poses);
 }
 
+
+/*--
+goal_align critic 은 궤적의 각 pose 에 대해 cost 를 평가할 때, 해당 pose 가 아닌 해당 pose 로부터 'forward_point_distance' 만큼 전진한 pose 에 대해 cost 평가를 한다.
+따라서 만약 해당 pose 의 angle 이 (사전에 지정된 최적 지향 지점) 에 정렬 되있는 상태이면 두 지점간의 거리가 가까워 지므로 낮은 cost 평가를 받고, 정렬 되있지 않은 상태이면 높은 cost 평가를 받는다.
+
+즉, goal_align critic 은 궤적의 각 pose 가 (사전에 지정된 최적 지향 지점) 에 잘 정렬 되있을수록 낮은 cost 평가를 준다.
+*/
 double GoalAlignCritic::scorePose(const geometry_msgs::msg::Pose2D & pose)
 {
+
+
+/*--
+궤적의 각 pose 에 대해 'forward_point_distance' 만큼 전진한 pose 를 cost 평가한다.
+*/
   return GoalDistCritic::scorePose(getForwardPose(pose, forward_point_distance_));
 }
 
