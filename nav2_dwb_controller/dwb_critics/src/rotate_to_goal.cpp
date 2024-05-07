@@ -96,46 +96,103 @@ bool RotateToGoalCritic::prepare(
 
 
 /*--
-dwb_local_planner에 의해 호출된다.
-특정 궤적을 아규먼트로 받고, 이 critic 논리에 따라 평가한 cost를 반환해준다.
-
---- 여기까지 진행함 !!
+dwb_local_planner 로부터 궤적 지원자를 아규먼트로 받는다.
+궤적 지원자의 cost 를 할당하여 반환한다.
 */
 double RotateToGoalCritic::scoreTrajectory(const dwb_msgs::msg::Trajectory2D & traj)
 {
+
+
   // If we're not sufficiently close to the goal, we don't care what the twist is
-  if (!in_window_) {
+
+/*--
+로봇이 최종 goal 지점과 특정 거리 이내에 있지 않으면 rotate_to_goal critic 은 동작하지 않는다.
+
+'in_window' 는 (로봇 ~ 최종 goal 간의 거리) 가 'xy_goal_tolerance' ros_parameter 보다 작은지 아닌지로 결정된다.
+(로봇 ~ 최종 goal 간의 거리) 가 'xy_goal_tolerance' 이내의 값이면 로봇이 최종 goal 지점에 충분히 가깝다고 판단한다.
+*/
+  if (!in_window_)
+  {
     return 0.0;
-  } else if (!rotating_) {
+  }
+
+
+/*--
+로봇이 최종 goal 지점에 근접해 있는 상태에서 로봇의 현재 선속도 (vx, vy) 가 아직 일정 값 이상이면, 평가할 궤적 지원자의 선속도 (vx, vy) 가 크면 클수록 높은 cost 를 할당한다.
+즉, 이 경우에는 평가할 궤적 지원자의 선속도 (vx, vy) 가 낮을수록 낮은 cost 를 할당한다.
+
+로봇의 현재 선속도 (vx, vy) 가 일정 값 이상인지 아닌지는 'rotating' 값으로 결정된다.
+'in_window' 가 true 이며, (2 wheel differential model 인 경우) 로봇의 현재 vx 가 'stopped_xy_velocity_sq_' ros_parameter 보다 작을 경우 'rotating' 는 true 가 된다.
+즉, 이 경우에는 로봇이 선속도가 굉장히 낮고 로봇이 최종 goal 지점에서 회전중인 상태라고 판단한다.
+*/
+  else if (!rotating_)
+  {
     double speed_sq = hypot_sq(traj.velocity.x, traj.velocity.y);
-    if (speed_sq >= current_xy_speed_sq_) {
+
+
+/*--
+로봇이 최종 goal 지점에 근접해 있는데도 평가할 궤적 지원자의 속도가 현재 로봇의 속도보다 커지는 경향이면 예외를 throw 한다.
+*/
+    if (speed_sq >= current_xy_speed_sq_)
+    {
       throw dwb_core::IllegalTrajectoryException(name_, "Not slowing down near goal.");
     }
+
+
+/*--
+로봇이 최종 goal 지점에 근접해 있는 상태에서 로봇의 현재 선속도 (vx, vy) 가 아직 일정 값 이상이면, 평가할 궤적 지원자의 선속도 (vx, vy) 가 크면 클수록 높은 cost 를 할당한다.
+즉, 이 경우에는 평가할 궤적 지원자의 선속도 (vx, vy) 가 낮을수록 낮은 cost 를 할당한다.
+*/
     return speed_sq * slowing_factor_ + scoreRotation(traj);
   }
 
+
   // If we're sufficiently close to the goal, any transforming velocity is invalid
-  if (fabs(traj.velocity.x) > 0 || fabs(traj.velocity.y) > 0) {
+
+/*--
+위의 if 문을 통과하고 여기에 도달했다는 것은, 로봇이 최종 goal 지점에 근접해 있으며 로봇의 선속도가 충분히 낮은 상태라는 것이다.
+여기부터 로봇은 이제 주행은 멈추고 최종 goal 방향으로의 회전을 해야 한다.
+따라서 평가할 궤적 지원자의 선속도가 0 보다 큰 경우는 예외를 throw 한다.
+
+즉, 각속도만 있는 궤적 지원자만 평가되고 그 중 하나가 최적 궤적 지원자로 선정된다.
+*/
+  if (fabs(traj.velocity.x) > 0 || fabs(traj.velocity.y) > 0)
+  {
     throw dwb_core::
           IllegalTrajectoryException(name_, "Nonrotation command near goal.");
   }
 
+
   return scoreRotation(traj);
 }
 
+
+/*--
+
+*/
 double RotateToGoalCritic::scoreRotation(const dwb_msgs::msg::Trajectory2D & traj)
 {
-  if (traj.poses.empty()) {
+  if (traj.poses.empty())
+  {
     throw dwb_core::IllegalTrajectoryException(name_, "Empty trajectory.");
   }
 
+
   double end_yaw;
-  if (lookahead_time_ >= 0.0) {
+
+
+  if (lookahead_time_ >= 0.0)
+  {
     geometry_msgs::msg::Pose2D eval_pose = dwb_core::projectPose(traj, lookahead_time_);
+
     end_yaw = eval_pose.theta;
-  } else {
+  }
+  else
+  {
     end_yaw = traj.poses.back().theta;
   }
+
+
   return fabs(angles::shortest_angular_distance(end_yaw, goal_yaw_));
 }
 
