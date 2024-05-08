@@ -163,12 +163,21 @@ double RotateToGoalCritic::scoreTrajectory(const dwb_msgs::msg::Trajectory2D & t
   }
 
 
+/*--
+궤적 지원자의 특정 pose 의 yaw 가 최종 goal 지점의 yaw 와 얼마나 정렬되어 있는지를 기반으로 cost 를 평가하여 반환한다.
+*/
   return scoreRotation(traj);
 }
 
 
 /*--
+궤적 지원자의 특정 pose 의 yaw 가 최종 goal 지점의 yaw 와 얼마나 정렬되어 있는지를 기반으로 cost 를 평가하여 반환한다.
 
+'lookahead_time' ros_parameter 가 음수일 경우, 특정 pose 는 궤적 지원자의 마지막 pose 로 선정된다.
+'lookahead_time' ros_parameter 가 (0.0 ~ 'sim_time') 사이의 값이면, 로봇의 현재 pose 부터 궤적 지원자의 속도로 'lookahead_time' 시간 동안 투영했을 때의 pose 가 특정 pose 로 선정된다.
+이때, 궤적 지원자는 'sim_time' 시간 동안 투영한 궤적이므로 'lookahead_time' 에 의해 선정된 특정 pose 는 궤적 지원자 내의 pose 로 선정된다.
+
+특정 pose yaw ~ 최종 goal yaw 간의 각도가 적은 궤적 지원자일수록 낮은 cost 로 평가한다.
 */
 double RotateToGoalCritic::scoreRotation(const dwb_msgs::msg::Trajectory2D & traj)
 {
@@ -181,6 +190,11 @@ double RotateToGoalCritic::scoreRotation(const dwb_msgs::msg::Trajectory2D & tra
   double end_yaw;
 
 
+/*--
+'lookahead_time' ros_parameter 가 음수일 경우, 특정 pose 는 궤적 지원자의 마지막 pose 로 선정된다.
+'lookahead_time' ros_parameter 가 (0.0 ~ 'sim_time') 사이의 값이면, 로봇의 현재 pose 부터 궤적 지원자의 속도로 'lookahead_time' 시간 동안 투영했을 때의 pose 가 특정 pose 로 선정된다.
+이때, 궤적 지원자는 'sim_time' 시간 동안 투영한 궤적이므로 'lookahead_time' 에 의해 선정된 특정 pose 는 궤적 지원자 내의 pose 로 선정된다.
+*/
   if (lookahead_time_ >= 0.0)
   {
     geometry_msgs::msg::Pose2D eval_pose = dwb_core::projectPose(traj, lookahead_time_);
@@ -193,6 +207,9 @@ double RotateToGoalCritic::scoreRotation(const dwb_msgs::msg::Trajectory2D & tra
   }
 
 
+/*--
+특정 pose yaw ~ 최종 goal yaw 간의 각도가 적은 궤적 지원자일수록 낮은 cost 로 평가한다.
+*/
   return fabs(angles::shortest_angular_distance(end_yaw, goal_yaw_));
 }
 

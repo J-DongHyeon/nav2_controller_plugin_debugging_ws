@@ -77,4 +77,8 @@ critic 분석 순서
 
 - rotate_to_goal critic (rog)
     (rog) scoreTrajectory() -> (rog) scoreRotation()
-    => 
+
+    => rotate_to_goal critic 은 로봇이 최종 goal 지점에 충분히 가까워졌을 때 동작한다.
+    로봇이 최종 goal 지점에 충분히 가까운 상태에서 로봇의 선속도가 아직 빠른 상태이면, 선속도가 낮은 궤적 지원자에 낮은 cost 를 준다.
+    로봇이 최종 goal 지점에 충분히 가까운 상태에서 로봇의 선속도도 충분히 낮은 상태이면, 선속도가 0 이며 각속도만 존재하는 궤적 지원자들만 평가한다.
+    따라서 이 경우 각속도만 있는 궤적 지원자들 중에서 최적 궤적 지원자가 선정되며, 이들 중 궤적 지원자의 특정 pose yaw 가 최종 goal 지점 yaw 와 잘 정렬 될수록 낮은 cost 평가를 받는다.
